@@ -63,19 +63,20 @@ const FoobarPage = () => {
           ))}
 
           <div className="my-2">
-            <Form onSubmit={onSubmit} error={error} formMethods={formMethods}>
+            <Form
+              onSubmit={onSubmit}
+              error={error}
+              formMethods={formMethods}
+              className="flex items-center"
+            >
               <FormError error={error} wrapperClassName="form-error" />
-
-              <label htmlFor="prompt" className="mb-2 block font-medium">
-                Prompt
-              </label>
               <TextAreaField
                 name="prompt"
-                className="mb-4 w-full rounded-md border border-gray-300 p-2"
+                className="w-full rounded-l-md border border-gray-300 p-2 focus:border-blue-500 focus:outline-none"
               />
               <Submit
                 disabled={loading}
-                className="mb-4 rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600"
+                className="rounded-r-md bg-blue-500 py-2 px-4 font-semibold text-white hover:bg-blue-600"
               >
                 Save
               </Submit>
