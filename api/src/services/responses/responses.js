@@ -18,25 +18,40 @@ export const response = ({ id }) => {
 }
 
 export const createResponse = async ({ input }) => {
-  const { prompt } = input
+  console.log('input --------', input)
+  const { messages } = input
+
   console.log('createResponse --------------------')
 
-  console.log(prompt)
-  const completion = await openai.createCompletion({
-    prompt,
-    model: 'text-davinci-003',
-    temperature: 0.6,
-  })
+  // const prepend = {
+  //   role: 'system',
+  //   content: 'Embed your response in HTML',
+  // }
 
-  console.log(completion.data)
+  // messages.push(prepend)
+  console.log('messages --------', messages)
 
-  const message = completion.data.choices[0].text
+  try {
+    console.log('calling OpenAI -------')
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages,
+      temperature: 0.7,
+    })
+    console.log('completion --------')
+    console.log(completion.data)
 
-  console.log(message) //
+    const raw = completion.data.choices[0].message.content
+    const message = raw.replace(/\n/g, '<br>')
 
-  return db.response.create({
-    data: { message, prompt },
-  })
+    console.log(message) //
+
+    return db.response.create({
+      data: { message, prompt: '' },
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export const updateResponse = ({ id, input }) => {

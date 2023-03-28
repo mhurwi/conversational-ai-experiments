@@ -12,9 +12,12 @@ export const schema = gql`
     response(id: Int!): Response @requireAuth
   }
 
+  input MessageInput {
+    role: String!
+    content: String!
+  }
   input CreateResponseInput {
-    prompt: String
-    message: String
+    messages: [MessageInput!]!
     error: String
   }
 
