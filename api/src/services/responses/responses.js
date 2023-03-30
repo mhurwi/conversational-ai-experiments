@@ -23,12 +23,14 @@ export const createResponse = async ({ input }) => {
 
   console.log('createResponse --------------------')
 
-  // const prepend = {
-  //   role: 'system',
-  //   content: 'Embed your response in HTML',
-  // }
+  // TODO: optimize how and why to use a system message
+  const prepend = {
+    role: 'system',
+    content:
+      'You are having a pleasant chat. Keep your responses short and conversational.',
+  }
 
-  // messages.push(prepend)
+  messages.push(prepend)
   console.log('messages --------', messages)
 
   try {

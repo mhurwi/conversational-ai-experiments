@@ -118,6 +118,12 @@ const TalkPage = () => {
               </span>
             </div>
           ))}
+        {/* Show a preview of the user's words as they speak */}
+        {words.length > 0 && (
+          <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
+            {words.join(' ')}
+          </span>
+        )}
       </div>
       {isRecording ? (
         <button onClick={stop}>Stop</button>
