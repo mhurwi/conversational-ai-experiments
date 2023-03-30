@@ -74,7 +74,11 @@ const TalkPage = () => {
   }
 
   function stop() {
-    recorder.stop()
+    recorder && recorder.stop()
+
+    if (words.length === 0) {
+      return
+    }
 
     const newMessages = [
       ...messages,
@@ -92,45 +96,90 @@ const TalkPage = () => {
     setRecorder(null)
   }
 
-  // TODO: send words to ChatGPT, then get response from ChatGPT and use text to speech
-  // so it feels like you are talking to a bot and listening to its response>
+  function RecordButton() {
+    const handleMouseDown = () => {
+      record()
+    }
+
+    const handleMouseUp = () => {
+      stop()
+    }
+
+    const buttonClasses = isRecording
+      ? 'bg-red-500 border-red-700 animate-pulse'
+      : 'bg-green-500 border-green-700'
+
+    return (
+      <button
+        className={`
+        flex h-40 w-40
+        flex-col items-center justify-center
+        rounded-full rounded
+        border-4
+        border-solid
+        py-2 px-4 text-xl
+        font-bold
+        leading-6 text-white
+        transition-all duration-300 ease-in-out ${buttonClasses}`}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <p>Push</p>
+        <p>to</p>
+        <p>Talk</p>
+      </button>
+    )
+  }
+
+  function clear() {
+    setWords([])
+    setMessages([])
+    setRecorder(null)
+    setIsRecording(false)
+  }
 
   return (
     <>
       <MetaTags title="Talk" description="Talk page" />
 
-      <h1>TalkPage</h1>
-      <div className="mx-auto mb-6 min-h-full	 w-96 rounded-lg bg-white p-6 shadow">
-        {messages.length > 0 &&
-          messages.map((m, index) => (
-            <div
-              key={index}
-              className={`my-2 ${m.role === 'user' ? 'text-right' : ''}`}
-            >
-              <span
-                className={`inline-block rounded-lg py-2 px-4 ${
-                  m.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-300 text-gray-800'
-                }`}
+      <div className="flex-col items-center justify-center">
+        <div className="mx-auto mb-6 min-h-full	 w-96 rounded-lg bg-white p-6 shadow">
+          {messages.length === 0 && words.length === 0 && (
+            <p className="text-center text-sm text-slate-600">
+              As you talk, your words will appear here.
+            </p>
+          )}
+          {messages.length > 0 &&
+            messages.map((m, index) => (
+              <div
+                key={index}
+                className={`my-2 ${m.role === 'user' ? 'text-right' : ''}`}
               >
-                <div dangerouslySetInnerHTML={{ __html: m.content }} />
-              </span>
-            </div>
-          ))}
-        {/* Show a preview of the user's words as they speak */}
-        {words.length > 0 && (
-          <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
-            {words.join(' ')}
-          </span>
-        )}
+                <span
+                  className={`inline-block rounded-lg py-2 px-4 ${
+                    m.role === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-300 text-gray-800'
+                  }`}
+                >
+                  <div dangerouslySetInnerHTML={{ __html: m.content }} />
+                </span>
+              </div>
+            ))}
+          {/* Show a preview of the user's words as they speak */}
+          {words.length > 0 && (
+            <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
+              {words.join(' ')}
+            </span>
+          )}
+          {loading && (
+            <p className="text-center text-sm text-slate-600">Thinking...</p>
+          )}
+        </div>
+        <RecordButton />
+        <button onClick={clear}>Clear</button>
       </div>
-      {isRecording ? (
-        <button onClick={stop}>Stop</button>
-      ) : (
-        <button onClick={record}>Record</button>
-      )}
-      {loading && <div>Thinking...</div>}
     </>
   )
 }
