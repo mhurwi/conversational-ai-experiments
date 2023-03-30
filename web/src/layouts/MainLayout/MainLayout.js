@@ -4,7 +4,7 @@ const BlogLayout = ({ children }) => {
   return (
     <>
       <header className="bg-gray-600 text-white">
-        <nav className="flex justify-between items-center px-4 py-2">
+        <nav className="flex items-center justify-between px-4 py-2">
           <Link to={routes.home()}>
             <h1 className="text-lg font-bold">Foobar App</h1>
           </Link>
@@ -12,6 +12,11 @@ const BlogLayout = ({ children }) => {
             <li className="mr-4">
               <Link to={routes.foobar()} className="hover:text-gray-400">
                 Foobar
+              </Link>
+            </li>
+            <li className="mr-4">
+              <Link to={routes.talk()} className="hover:text-gray-400">
+                Talk
               </Link>
             </li>
             <li className="mr-4">
@@ -30,10 +35,10 @@ const BlogLayout = ({ children }) => {
       <main className="container mx-auto mt-8">{children}</main>
       <footer className="bg-gray-200 py-4">
         <div className="container mx-auto text-center">
-          <p className="text-gray-600 text-sm">
+          <p className="text-sm text-gray-600">
             &copy; 2023 My App. All rights reserved.
           </p>
-          <p className="text-gray-600 text-sm mt-2">
+          <p className="mt-2 text-sm text-gray-600">
             Built with{' '}
             <a
               href="https://reactjs.org/"
