@@ -20,17 +20,20 @@ const CREATE_RESPONSE = gql`
 const TalkPage = () => {
   const deepgram = new Deepgram(process.env.DEEPGRAM_KEY)
 
+  const TOPICS = ['gardening', 'philosophy', 'music']
+
   const [isRecording, setIsRecording] = useState(false)
   const [recorder, setRecorder] = useState(null)
   const [words, setWords] = useState([])
   const [messages, setMessages] = useState([])
+  const [topic, setTopic] = useState('banter')
 
   // Convert the response to a SpeechSynthesisUtterance
-  function speakResponse(text) {
-    var msg = new SpeechSynthesisUtterance()
-    msg.text = text
-    window.speechSynthesis.speak(msg)
-  }
+  // function speakResponse(text) {
+  //   var msg = new SpeechSynthesisUtterance()
+  //   msg.text = text
+  //   window.speechSynthesis.speak(msg)
+  // }
 
   async function speakResponseUsingApi(text) {
     const apiKey = process.env.GOOGLE_API_KEY
@@ -38,9 +41,11 @@ const TalkPage = () => {
 
     const voiceName = 'en-GB-News-J'
 
+    const ssml = `<speak>${text}</speak>`
+
     const requestBody = {
       input: {
-        text: text,
+        ssml: ssml,
       },
       voice: {
         languageCode: 'en-US',
@@ -146,8 +151,47 @@ const TalkPage = () => {
 
     setMessages(newMessages)
     setWords([])
-    create({ variables: { input: { messages: newMessages } } })
+    create({ variables: { input: { messages: newMessages, topic } } })
     setRecorder(null)
+  }
+
+  function clear() {
+    setWords([])
+    setMessages([])
+    setRecorder(null)
+    setIsRecording(false)
+  }
+
+  // A dropdown menu to choose a topic
+  const ChooseConversation = () => {
+    return (
+      <div className="flex items-center justify-center space-x-4">
+        {/* Text saying "Choose a topic:" */}
+        <p className="text-lg font-bold">Topic</p>
+        <div className="relative">
+          <select
+            className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow transition-all duration-200 ease-in-out hover:border-gray-500 focus:outline-none"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+          >
+            {TOPICS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="h-4 w-4 fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const MessagesPlaceholder = () => {
@@ -217,13 +261,16 @@ const TalkPage = () => {
         className={`
         flex h-40 w-40
         flex-col items-center justify-center
-        rounded-full rounded
+        rounded-full
         border-4
         border-solid
-        border-green-700 bg-green-500 py-2
+        border-green-700 bg-green-500
+        py-2
         px-4
         text-xl font-bold
-        leading-6 text-white transition-all duration-300 ease-in-out`}
+        leading-6 text-white shadow-md transition-all duration-300
+        ease-in-out
+        hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300`}
         onClick={toggleRecording}
       >
         <p>Push</p>
@@ -235,20 +282,21 @@ const TalkPage = () => {
     const StopRecordingBtn = (
       <button
         className={`
-      flex
-      h-40
-      w-40
-      animate-pulse
-      flex-col
-      items-center
-      justify-center
-      rounded-full
-      rounded
-      border-4
-      border-solid border-red-700 bg-red-500
-      py-2
-      px-4 text-xl
-      font-bold leading-6 text-white transition-all duration-300 ease-in-out`}
+        flex
+        h-40
+        w-40
+        animate-pulse
+        flex-col
+        items-center
+        justify-center
+        rounded-full
+        border-4
+        border-solid border-red-700 bg-red-500
+        py-2
+        px-4 text-xl
+        font-bold leading-6 text-white shadow-md transition-all duration-300
+        ease-in-out
+        hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300`}
         onClick={toggleRecording}
       >
         <p>Stop</p>
@@ -260,23 +308,24 @@ const TalkPage = () => {
 
   const ClearButton = () => {
     return (
-      <button onClick={clear} className="text-slate-600">
-        Clear
-      </button>
+      <div className="flex items-center justify-center space-x-4">
+        <button
+          onClick={clear}
+          className="rounded border border-slate-700 bg-slate-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+        >
+          Clear
+        </button>
+      </div>
     )
-  }
-
-  function clear() {
-    setWords([])
-    setMessages([])
-    setRecorder(null)
-    setIsRecording(false)
   }
 
   return (
     <>
       <MetaTags title="Talk" description="Talk page" />
       <div className="flex min-h-screen flex-col items-center justify-start">
+        <div className="flex flex-col items-center justify-center">
+          <ChooseConversation />
+        </div>
         <div className="mb-6 w-96 rounded-lg bg-white p-6 shadow">
           <MessagesPlaceholder />
           <Messages />

@@ -19,15 +19,14 @@ export const response = ({ id }) => {
 
 export const createResponse = async ({ input }) => {
   console.log('input --------', input)
-  const { messages } = input
+  const { messages, topic } = input
 
   console.log('createResponse --------------------')
 
   // TODO: optimize how and why to use a system message
   const prepend = {
     role: 'system',
-    content:
-      'You are having a pleasant chat. Keep your responses short and conversational.',
+    content: `Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. Keep your responses short and conversational.`,
   }
 
   messages.push(prepend)

@@ -18,6 +18,7 @@ export const schema = gql`
   }
   input CreateResponseInput {
     messages: [MessageInput!]!
+    topic: String
     error: String
   }
 
