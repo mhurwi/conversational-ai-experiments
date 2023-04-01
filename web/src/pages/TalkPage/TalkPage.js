@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 import { Deepgram } from '@deepgram/sdk/browser'
 import axios from 'axios'
 
-import { Link, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 import { useMutation } from '@redwoodjs/web'
 
@@ -20,13 +19,11 @@ const CREATE_RESPONSE = gql`
 const TalkPage = () => {
   const deepgram = new Deepgram(process.env.DEEPGRAM_KEY)
 
-  const TOPICS = ['gardening', 'philosophy', 'music']
-
   const [isRecording, setIsRecording] = useState(false)
   const [recorder, setRecorder] = useState(null)
   const [words, setWords] = useState([])
   const [messages, setMessages] = useState([])
-  const [topic, setTopic] = useState('banter')
+  const [topic, setTopic] = useState('history')
 
   // Convert the response to a SpeechSynthesisUtterance
   // function speakResponse(text) {
@@ -163,36 +160,22 @@ const TalkPage = () => {
   }
 
   // A dropdown menu to choose a topic
-  const ChooseConversation = () => {
+  const ChooseConversation = useMemo(() => {
     return (
       <div className="flex items-center justify-center space-x-4">
-        {/* Text saying "Choose a topic:" */}
         <p className="text-lg font-bold">Topic</p>
         <div className="relative">
-          <select
-            className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow transition-all duration-200 ease-in-out hover:border-gray-500 focus:outline-none"
+          <input
+            type="text"
+            className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 leading-tight shadow transition-all duration-200 ease-in-out hover:border-gray-500 focus:outline-none"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-          >
-            {TOPICS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <svg
-              className="h-4 w-4 fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-            </svg>
-          </div>
+            placeholder="Enter a topic"
+          />
         </div>
       </div>
     )
-  }
+  }, [topic])
 
   const MessagesPlaceholder = () => {
     return (
@@ -299,7 +282,7 @@ const TalkPage = () => {
         hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300`}
         onClick={toggleRecording}
       >
-        <p>Stop</p>
+        <p>Get Response</p>
       </button>
     )
 
@@ -324,7 +307,7 @@ const TalkPage = () => {
       <MetaTags title="Talk" description="Talk page" />
       <div className="flex min-h-screen flex-col items-center justify-start">
         <div className="flex flex-col items-center justify-center">
-          <ChooseConversation />
+          {ChooseConversation}
         </div>
         <div className="mb-6 w-96 rounded-lg bg-white p-6 shadow">
           <MessagesPlaceholder />

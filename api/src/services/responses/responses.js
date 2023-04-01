@@ -26,7 +26,7 @@ export const createResponse = async ({ input }) => {
   // TODO: optimize how and why to use a system message
   const prepend = {
     role: 'system',
-    content: `Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. Keep your responses short and conversational.`,
+    content: `Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. Keep your responses short, conversational and limited to at most 100 words.`,
   }
 
   messages.push(prepend)
@@ -35,7 +35,8 @@ export const createResponse = async ({ input }) => {
   try {
     console.log('calling OpenAI -------')
     const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
+      // model: 'gpt-3.5-turbo', // faster but less accurate
+      model: 'gpt-4', // slower but more accurate
       messages,
       temperature: 0.7,
     })
