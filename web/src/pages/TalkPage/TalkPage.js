@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { Deepgram } from '@deepgram/sdk/browser'
+import axios from 'axios'
 
 import { Link, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
@@ -17,7 +18,7 @@ const CREATE_RESPONSE = gql`
 `
 
 const TalkPage = () => {
-  const deepgram = new Deepgram('ec3d9b197a47778868a24967ba64405993f7a847')
+  const deepgram = new Deepgram(process.env.DEEPGRAM_KEY)
 
   const [isRecording, setIsRecording] = useState(false)
   const [recorder, setRecorder] = useState(null)
@@ -25,11 +26,51 @@ const TalkPage = () => {
   const [messages, setMessages] = useState([])
 
   // Convert the response to a SpeechSynthesisUtterance
-  // TODO: use a different speech synthesis engine
   function speakResponse(text) {
     var msg = new SpeechSynthesisUtterance()
     msg.text = text
     window.speechSynthesis.speak(msg)
+  }
+
+  async function speakResponseUsingApi(text) {
+    const apiKey = process.env.GOOGLE_API_KEY
+    const apiUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`
+
+    const voiceName = 'en-GB-News-J'
+
+    const requestBody = {
+      input: {
+        text: text,
+      },
+      voice: {
+        languageCode: 'en-US',
+        name: voiceName,
+      },
+      audioConfig: {
+        audioEncoding: 'MP3',
+        speakingRate: 1.3,
+      },
+    }
+
+    try {
+      const response = await axios.post(apiUrl, requestBody)
+      const audioContent = response.data.audioContent
+      const audioBlob = new Blob(
+        [
+          new Uint8Array(
+            atob(audioContent)
+              .split('')
+              .map((char) => char.charCodeAt(0))
+          ),
+        ],
+        { type: 'audio/mpeg' }
+      )
+
+      const audio = new Audio(URL.createObjectURL(audioBlob))
+      audio.play()
+    } catch (error) {
+      console.error('Error calling Google TTS API:', error)
+    }
   }
 
   const [create, { loading }] = useMutation(CREATE_RESPONSE, {
@@ -40,7 +81,7 @@ const TalkPage = () => {
         { role: 'assistant', content: createResponse.message },
       ])
 
-      speakResponse(createResponse.message)
+      speakResponseUsingApi(createResponse.message)
     },
   })
 
