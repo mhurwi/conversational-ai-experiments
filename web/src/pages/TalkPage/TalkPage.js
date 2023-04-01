@@ -17,49 +17,61 @@ const CREATE_RESPONSE = gql`
 `
 
 const TalkPage = () => {
+  const deepgram = new Deepgram('ec3d9b197a47778868a24967ba64405993f7a847')
+
   const [isRecording, setIsRecording] = useState(false)
   const [recorder, setRecorder] = useState(null)
   const [words, setWords] = useState([])
   const [messages, setMessages] = useState([])
 
-  const [create, { loading, error }] = useMutation(CREATE_RESPONSE, {
+  // Convert the response to a SpeechSynthesisUtterance
+  // TODO: use a different speech synthesis engine
+  function speakResponse(text) {
+    var msg = new SpeechSynthesisUtterance()
+    msg.text = text
+    window.speechSynthesis.speak(msg)
+  }
+
+  const [create, { loading }] = useMutation(CREATE_RESPONSE, {
     onCompleted: ({ createResponse }) => {
-      // TODO: change messages to show all the messages along with the new message
+      // Add the new ChaGPT response to the list of responses so that it appears on the page
       setMessages([
         ...messages,
         { role: 'assistant', content: createResponse.message },
       ])
 
-      var msg = new SpeechSynthesisUtterance()
-      msg.text = createResponse.message
-      window.speechSynthesis.speak(msg)
+      speakResponse(createResponse.message)
     },
   })
 
   function record() {
-    const deepgram = new Deepgram('ec3d9b197a47778868a24967ba64405993f7a847')
+    setIsRecording(true)
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      setIsRecording(true)
-
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm',
       })
+      // Store a reference to the MediaRecorder object so we can stop it later
       setRecorder(mediaRecorder)
 
+      // Connect to the deepgram socket
       const deepgramSocket = deepgram.transcription.live({
         punctuate: true,
       })
 
+      // Add an event listener to the deepgram socket
       deepgramSocket.addEventListener('open', () => {
+        // listen for data available on the socket and send it to deepgram
         mediaRecorder.addEventListener('dataavailable', async (event) => {
           if (event.data.size > 0 && deepgramSocket.readyState == 1) {
             deepgramSocket.send(event.data)
           }
         })
+        // start recording and send the data every second
         mediaRecorder.start(1000)
       })
 
+      // listen for messages from deepgram and add them to the words array
       deepgramSocket.addEventListener('message', (message) => {
         const received = JSON.parse(message.data)
         const transcript = received.channel.alternatives[0].transcript
@@ -71,10 +83,16 @@ const TalkPage = () => {
         }
       })
     })
+
+    // TODO: rather than require the user to stop recording by pressing the stop button,
+    // just wait for the user to stop talking and then get the ChatGPT response and
+    // record again when the user starts talking again.
   }
 
   function stop() {
     recorder && recorder.stop()
+
+    setIsRecording(false)
 
     if (words.length === 0) {
       return
@@ -87,29 +105,73 @@ const TalkPage = () => {
 
     setMessages(newMessages)
     setWords([])
-
-    console.log(newMessages)
-
     create({ variables: { input: { messages: newMessages } } })
-
-    setIsRecording(false)
     setRecorder(null)
   }
 
-  function RecordButton() {
-    const handleMouseDown = () => {
-      record()
-    }
-
-    const handleMouseUp = () => {
-      stop()
-    }
-
-    const buttonClasses = isRecording
-      ? 'bg-red-500 border-red-700 animate-pulse'
-      : 'bg-green-500 border-green-700'
-
+  const MessagesPlaceholder = () => {
     return (
+      !isRecording &&
+      messages.length === 0 &&
+      words.length === 0 && (
+        <p className="text-center text-sm text-slate-600">
+          As you talk, your words will appear here.
+        </p>
+      )
+    )
+  }
+
+  const Messages = () => {
+    return (
+      messages.length > 0 &&
+      messages.map((m, index) => (
+        <div
+          key={index}
+          className={`my-2 ${m.role === 'user' ? 'text-right' : ''}`}
+        >
+          <span
+            className={`inline-block rounded-lg py-2 px-4 ${
+              m.role === 'user'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-300 text-gray-800'
+            }`}
+          >
+            <div dangerouslySetInnerHTML={{ __html: m.content }} />
+          </span>
+        </div>
+      ))
+    )
+  }
+
+  // Show a preview of the user's words as they speak
+  const WordsBeingSpoken = () => {
+    return (
+      words.length > 0 && (
+        <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
+          {words.join(' ')}
+        </span>
+      )
+    )
+  }
+
+  const WaitingForResponseIndicator = () => {
+    return (
+      loading && (
+        <p className="text-center text-sm text-slate-600">Thinking...</p>
+      )
+    )
+  }
+
+  function RecordButton() {
+    const toggleRecording = () => {
+      if (isRecording) {
+        stop()
+      } else {
+        record()
+      }
+    }
+
+    const StartRecordingBtn = (
       <button
         className={`
         flex h-40 w-40
@@ -117,17 +179,48 @@ const TalkPage = () => {
         rounded-full rounded
         border-4
         border-solid
-        py-2 px-4 text-xl
-        font-bold
-        leading-6 text-white
-        transition-all duration-300 ease-in-out ${buttonClasses}`}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        border-green-700 bg-green-500 py-2
+        px-4
+        text-xl font-bold
+        leading-6 text-white transition-all duration-300 ease-in-out`}
+        onClick={toggleRecording}
       >
         <p>Push</p>
         <p>to</p>
         <p>Talk</p>
+      </button>
+    )
+
+    const StopRecordingBtn = (
+      <button
+        className={`
+      flex
+      h-40
+      w-40
+      animate-pulse
+      flex-col
+      items-center
+      justify-center
+      rounded-full
+      rounded
+      border-4
+      border-solid border-red-700 bg-red-500
+      py-2
+      px-4 text-xl
+      font-bold leading-6 text-white transition-all duration-300 ease-in-out`}
+        onClick={toggleRecording}
+      >
+        <p>Stop</p>
+      </button>
+    )
+
+    return isRecording ? StopRecordingBtn : StartRecordingBtn
+  }
+
+  const ClearButton = () => {
+    return (
+      <button onClick={clear} className="text-slate-600">
+        Clear
       </button>
     )
   }
@@ -142,43 +235,17 @@ const TalkPage = () => {
   return (
     <>
       <MetaTags title="Talk" description="Talk page" />
-
-      <div className="flex-col items-center justify-center">
-        <div className="mx-auto mb-6 min-h-full	 w-96 rounded-lg bg-white p-6 shadow">
-          {messages.length === 0 && words.length === 0 && (
-            <p className="text-center text-sm text-slate-600">
-              As you talk, your words will appear here.
-            </p>
-          )}
-          {messages.length > 0 &&
-            messages.map((m, index) => (
-              <div
-                key={index}
-                className={`my-2 ${m.role === 'user' ? 'text-right' : ''}`}
-              >
-                <span
-                  className={`inline-block rounded-lg py-2 px-4 ${
-                    m.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-300 text-gray-800'
-                  }`}
-                >
-                  <div dangerouslySetInnerHTML={{ __html: m.content }} />
-                </span>
-              </div>
-            ))}
-          {/* Show a preview of the user's words as they speak */}
-          {words.length > 0 && (
-            <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
-              {words.join(' ')}
-            </span>
-          )}
-          {loading && (
-            <p className="text-center text-sm text-slate-600">Thinking...</p>
-          )}
+      <div className="flex min-h-screen flex-col items-center justify-start">
+        <div className="mb-6 w-96 rounded-lg bg-white p-6 shadow">
+          <MessagesPlaceholder />
+          <Messages />
+          <WordsBeingSpoken />
+          <WaitingForResponseIndicator />
         </div>
-        <RecordButton />
-        <button onClick={clear}>Clear</button>
+        <div className="w-400 border-width-1 flex flex-row space-x-4">
+          <RecordButton />
+          <ClearButton />
+        </div>
       </div>
     </>
   )
