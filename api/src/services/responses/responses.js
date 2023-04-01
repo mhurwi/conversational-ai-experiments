@@ -26,7 +26,8 @@ export const createResponse = async ({ input }) => {
   // TODO: optimize how and why to use a system message
   const prepend = {
     role: 'system',
-    content: `Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. Keep your responses short, conversational and limited to at most 100 words.`,
+    content: `
+Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. You only want to discuss ${topic} and you will redirect the converstaion back to ${topic} when the user goes off-topic. You might even mention that you are only here to discuss ${topic}.  Keep your responses short, conversational and limited to at most 50 words.`,
   }
 
   messages.push(prepend)
