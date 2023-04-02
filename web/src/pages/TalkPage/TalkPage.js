@@ -24,6 +24,7 @@ const TalkPage = () => {
   const [words, setWords] = useState([])
   const [messages, setMessages] = useState([])
   const [topic, setTopic] = useState('history')
+  const [isPlaying, setIsPlaying] = useState(false)
 
   // Convert the response to a SpeechSynthesisUtterance
   // function speakResponse(text) {
@@ -69,6 +70,21 @@ const TalkPage = () => {
       )
 
       const audio = new Audio(URL.createObjectURL(audioBlob))
+      // Set isPlaying to true when the audio starts playing
+      audio.addEventListener('play', () => {
+        setIsPlaying(true)
+      })
+
+      // Set isPlaying to false when the audio ends
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false)
+      })
+
+      // Handle any errors that occur during playback
+      audio.addEventListener('error', () => {
+        setIsPlaying(false)
+      })
+
       audio.play()
     } catch (error) {
       console.error('Error calling Google TTS API:', error)
@@ -253,8 +269,11 @@ const TalkPage = () => {
         text-xl font-bold
         leading-6 text-white shadow-md transition-all duration-300
         ease-in-out
-        hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300`}
+        hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300
+        ${loading || isPlaying ? 'cursor-not-allowed opacity-50' : ''}
+        `}
         onClick={toggleRecording}
+        disabled={loading || isPlaying}
       >
         <p>Push</p>
         <p>to</p>
