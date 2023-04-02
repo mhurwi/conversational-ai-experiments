@@ -1,11 +1,14 @@
 import { Link } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 
+import RobotCoffeeShop from './robot-coffee-shop.png'
+
 const HomePage = () => {
   return (
     <>
       <MetaTags title="Home" description="Home page" />
-      <div className="flex min-h-screen flex-col items-center justify-center space-y-8">
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <img src={RobotCoffeeShop} alt="Robot Coffee Shop" className="w-400" />
         <h1 className="text-4xl font-semibold text-primary">Talk to AI</h1>
         <p className="max-w-md text-center text-lg">
           A new platform for conversational AI interactions.

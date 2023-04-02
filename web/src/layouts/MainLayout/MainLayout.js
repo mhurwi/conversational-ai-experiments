@@ -2,7 +2,7 @@ import { Link, routes } from '@redwoodjs/router'
 
 const BlogLayout = ({ children }) => {
   return (
-    <div className="flex min-h-screen flex-col font-sans">
+    <div className="flex flex-col font-sans">
       <header className="bg-primary text-white">
         <nav className="flex items-center justify-between px-4 py-2">
           <Link to={routes.home()}>
@@ -27,7 +27,7 @@ const BlogLayout = ({ children }) => {
           </ul>
         </nav>
       </header>
-      <main className="container mx-auto mt-8 flex-grow">{children}</main>
+      <main className="container mx-auto flex-grow">{children}</main>
       <footer className="bg-secondary py-4">
         <div className="container mx-auto text-center">
           <p className="text-sm text-white">
