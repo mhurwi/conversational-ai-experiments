@@ -10,11 +10,6 @@ const BlogLayout = ({ children }) => {
           </Link>
           <ul className="flex">
             <li className="mr-4">
-              <Link to={routes.foobar()} className="hover:text-accent">
-                Foobar
-              </Link>
-            </li>
-            <li className="mr-4">
               <Link to={routes.talk()} className="hover:text-accent">
                 Talk
               </Link>
