@@ -12,6 +12,7 @@ const CREATE_RESPONSE = gql`
       id
       prompt
       message
+      customPrompt
     }
   }
 `
@@ -24,6 +25,7 @@ const TalkPage = () => {
   const [words, setWords] = useState([])
   const [messages, setMessages] = useState([])
   const [topic, setTopic] = useState('history')
+  const [customPrompt, setCustomPrompt] = useState('')
   const [isPlaying, setIsPlaying] = useState(false)
 
   // Convert the response to a SpeechSynthesisUtterance
@@ -179,11 +181,11 @@ const TalkPage = () => {
   const ChooseConversation = useMemo(() => {
     return (
       <div className="flex items-center justify-center space-x-4">
-        <p className="text-lg font-bold">Topic</p>
+        <p className="text-xl font-semibold text-secondary">Topic</p>
         <div className="relative">
           <input
             type="text"
-            className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 leading-tight shadow transition-all duration-200 ease-in-out hover:border-gray-500 focus:outline-none"
+            className="focus:ring-accent block w-full appearance-none rounded border border-secondary bg-white px-4 py-2 leading-tight shadow transition-all duration-200 ease-in-out hover:border-primary focus:outline-none focus:ring-2"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="Enter a topic"
@@ -193,12 +195,26 @@ const TalkPage = () => {
     )
   }, [topic])
 
+  const AddCustomPrompt = useMemo(() => {
+    return (
+      <div className="flex flex-row items-center space-y-4">
+        <p className="text-xl font-semibold text-secondary">Custom prompt</p>
+        <textarea
+          className="h-32 w-full resize-none rounded-md border-2 border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={customPrompt}
+          onChange={(e) => setCustomPrompt(e.target.value)}
+          placeholder="Type your custom prompt here..."
+        />
+      </div>
+    )
+  })
+
   const MessagesPlaceholder = () => {
     return (
       !isRecording &&
       messages.length === 0 &&
       words.length === 0 && (
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm text-gray-500">
           As you talk, your words will appear here.
         </p>
       )
@@ -214,13 +230,16 @@ const TalkPage = () => {
           className={`my-2 ${m.role === 'user' ? 'text-right' : ''}`}
         >
           <span
-            className={`inline-block rounded-lg py-2 px-4 ${
+            className={`inline-block rounded-xl py-2 px-4 ${
               m.role === 'user'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-300 text-gray-800'
+                ? 'bg-primary text-white'
+                : 'bg-secondary text-white'
             }`}
           >
-            <div dangerouslySetInnerHTML={{ __html: m.content }} />
+            <div
+              className="text-sm"
+              dangerouslySetInnerHTML={{ __html: m.content }}
+            />
           </span>
         </div>
       ))
@@ -231,7 +250,7 @@ const TalkPage = () => {
   const WordsBeingSpoken = () => {
     return (
       words.length > 0 && (
-        <span className="inline-block rounded-lg bg-blue-400 py-2 px-4 text-right text-white">
+        <span className="inline-block rounded-lg bg-accent py-2 px-4 text-right text-white">
           {words.join(' ')}
         </span>
       )
@@ -241,7 +260,7 @@ const TalkPage = () => {
   const WaitingForResponseIndicator = () => {
     return (
       loading && (
-        <p className="text-center text-sm text-slate-600">Thinking...</p>
+        <p className="text-center text-sm text-gray-500">Thinking...</p>
       )
     )
   }
@@ -258,26 +277,24 @@ const TalkPage = () => {
     const StartRecordingBtn = (
       <button
         className={`
-        flex h-40 w-40
+        flex h-16 w-48
         flex-col items-center justify-center
-        rounded-full
-        border-4
+        rounded
+        border-2
         border-solid
-        border-green-700 bg-green-500
+        border-green-500 bg-green-400
         py-2
         px-4
-        text-xl font-bold
+        text-lg font-semibold
         leading-6 text-white shadow-md transition-all duration-300
         ease-in-out
-        hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300
+        hover:bg-green-500 focus:outline-none focus:ring-4 focus:ring-green-200
         ${loading || isPlaying ? 'cursor-not-allowed opacity-50' : ''}
         `}
         onClick={toggleRecording}
         disabled={loading || isPlaying}
       >
-        <p>Push</p>
-        <p>to</p>
-        <p>Talk</p>
+        <p>Push to Talk</p>
       </button>
     )
 
@@ -285,20 +302,20 @@ const TalkPage = () => {
       <button
         className={`
         flex
-        h-40
-        w-40
+        h-16
+        w-48
         animate-pulse
         flex-col
         items-center
         justify-center
-        rounded-full
-        border-4
-        border-solid border-red-700 bg-red-500
+        rounded
+        border-2
+        border-solid border-red-500 bg-red-400
         py-2
-        px-4 text-xl
-        font-bold leading-6 text-white shadow-md transition-all duration-300
+        px-4 text-lg
+        font-semibold leading-6 text-white shadow-md transition-all duration-300
         ease-in-out
-        hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300`}
+        hover:bg-red-500 focus:outline-none focus:ring-4 focus:ring-red-200`}
         onClick={toggleRecording}
       >
         <p>Get Response</p>
@@ -313,7 +330,7 @@ const TalkPage = () => {
       <div className="flex items-center justify-center space-x-4">
         <button
           onClick={clear}
-          className="rounded border border-slate-700 bg-slate-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+          className="hover:bg-secondary-dark focus:ring-primary rounded border border-secondary bg-secondary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 ease-in-out focus:outline-none focus:ring-2"
         >
           Clear
         </button>
@@ -325,10 +342,11 @@ const TalkPage = () => {
     <>
       <MetaTags title="Talk" description="Talk page" />
       <div className="flex min-h-screen flex-col items-center justify-start">
-        <div className="flex flex-col items-center justify-center">
+        <div className="mt-8 flex flex-col items-center justify-center">
           {ChooseConversation}
+          {AddCustomPrompt}
         </div>
-        <div className="mb-6 w-96 rounded-lg bg-white p-6 shadow">
+        <div className="mt-6 mb-6 w-96 rounded-xl bg-white p-6 shadow-fun">
           <MessagesPlaceholder />
           <Messages />
           <WordsBeingSpoken />
