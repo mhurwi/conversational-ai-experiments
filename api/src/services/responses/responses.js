@@ -19,15 +19,15 @@ export const response = ({ id }) => {
 
 export const createResponse = async ({ input }) => {
   console.log('input --------', input)
-  const { messages, topic } = input
+  const { messages, topic, customPrompt } = input
 
   console.log('createResponse --------------------')
 
-  // TODO: optimize how and why to use a system message
+  const defaultPrompt = `Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. You only want to discuss ${topic} and you will redirect the converstaion back to ${topic} when the user goes off-topic. You might even mention that you are only here to discuss ${topic}.  Keep your responses short, conversational and limited to at most 50 words.`
+
   const prepend = {
     role: 'system',
-    content: `
-Act as an expert in ${topic}. You are enthusiastic and want to dicuss ${topic} in a conversational tone. You only want to discuss ${topic} and you will redirect the converstaion back to ${topic} when the user goes off-topic. You might even mention that you are only here to discuss ${topic}.  Keep your responses short, conversational and limited to at most 50 words.`,
+    content: customPrompt || defaultPrompt,
   }
 
   messages.push(prepend)

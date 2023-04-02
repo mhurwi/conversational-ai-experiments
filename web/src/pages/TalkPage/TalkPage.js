@@ -12,7 +12,6 @@ const CREATE_RESPONSE = gql`
       id
       prompt
       message
-      customPrompt
     }
   }
 `
@@ -166,7 +165,9 @@ const TalkPage = () => {
 
     setMessages(newMessages)
     setWords([])
-    create({ variables: { input: { messages: newMessages, topic } } })
+    create({
+      variables: { input: { messages: newMessages, topic, customPrompt } },
+    })
     setRecorder(null)
   }
 

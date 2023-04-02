@@ -20,6 +20,7 @@ export const schema = gql`
     messages: [MessageInput!]!
     topic: String
     error: String
+    customPrompt: String
   }
 
   input UpdateResponseInput {
