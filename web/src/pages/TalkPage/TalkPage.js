@@ -233,7 +233,7 @@ const TalkPage = () => {
           <span
             className={`inline-block rounded-xl py-2 px-4 ${
               m.role === 'user'
-                ? 'bg-primary text-white'
+                ? 'bg-blue-500 text-white'
                 : 'bg-secondary text-white'
             }`}
           >
